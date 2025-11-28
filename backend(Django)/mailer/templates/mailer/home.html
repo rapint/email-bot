@@ -1,45 +1,239 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Email Bot</title>
-</head>
-<body>
-    <h1>Email Sender</h1>
+<html lang="en">
 
-    <!-- Display Django messages -->
-    {% if messages %}
+<head>
+    <meta charset="UTF-8">
+    <title>Email Bot</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            margin-top: 40px;
+            padding: 30px;
+            width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #111827;
+        }
+
+        label {
+            font-weight: 600;
+            color: #374151;
+            margin-top: 15px;
+            display: block;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 5px rgba(99, 102, 241, 0.4);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #6366f1;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #4f46e5;
+        }
+
+        #preview-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: #374151;
+            min-height: 100px;
+            display: none;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li.error {
+            background: #fee2e2;
+            color: #b91c1c;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        li.success {
+            background: #dcfce7;
+            color: #166534;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>Email Bot</h1>
+
+        {% if messages %}
         <ul>
             {% for message in messages %}
-                <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            <li class="{{ message.tags }}">{{ message }}</li>
             {% endfor %}
         </ul>
-    {% endif %}
+        {% endif %}
 
-    <form method="POST">
-        {% csrf_token %}
-        
-        <!-- Recipient Email -->
-        <label for="email">Recipient Email:</label><br>
-        <input type="email" name="email" id="email" required><br><br>
-        
-        <!-- From Email Selector -->
-        <label for="from_email">From Email:</label><br>
-        <select name="from_email" id="from_email" required>
-            <option value="">-- Select From Email --</option>
-            {% for from_email in from_emails %}
+        <form method="POST">
+            {% csrf_token %}
+
+            <label for="email">Recipient Email:</label>
+            <input type="email" name="email" id="email" required>
+
+            <label for="from_email">From Email:</label>
+            <select name="from_email" id="from_email" required>
+                <option value="">-- Select From Email --</option>
+                {% for from_email in from_emails %}
                 <option value="{{ from_email }}">{{ from_email }}</option>
-            {% endfor %}
-        </select><br><br>
+                {% endfor %}
+            </select>
 
-        <!-- Email Templates -->
-        <h3>Select Email Templates:</h3>
-        {% for key, message in templates.items %}
-            <input type="checkbox" name="templates" value="{{ key }}" id="{{ key }}">
-            <label for="{{ key }}">{{ key|capfirst }}</label><br>
-        {% endfor %}
+            <label for="custom_prompt">Your Prompt:</label>
+            <textarea id="custom_prompt" placeholder="E.g. 'Write a polite job application email'"></textarea>
 
-        <br>
-        <button type="submit">Send Emails</button>
-    </form>
+            <label for="job_description">Job Description:</label>
+            <textarea id="job_description"
+                placeholder="Paste the job description here..."></textarea>
+
+            <!-- Generate -->
+            <button type="button" class="btn-secondary" onclick="generateMessage()">Generate Message</button>
+
+            <label>Email Subject:</label>
+            <input type="text" id="email_subject" placeholder="Generated subject will appear here...">
+
+            <textarea id="preview-box"></textarea>
+
+            <!-- Hidden fields sent on submit -->
+            <input type="hidden" name="generated_subject" id="generated_subject">
+            <input type="hidden" name="generated_message" id="generated_message">
+
+            <!-- Send -->
+            <button type="submit">Send Email</button>
+        </form>
+    </div>
+
+    <script>
+        function generateMessage() {
+            console.log("Generate message clicked!");
+
+            const prompt = document.getElementById("job_description").value;
+            const custom_prompt = document.getElementById("custom_prompt").value;
+            const previewBox = document.getElementById("preview-box");
+            const subjectBox = document.getElementById("email_subject");
+
+            if (!prompt.trim()) {
+                alert("Please enter a job description.");
+                return;
+            }
+            if (!custom_prompt.trim()) {
+                alert("Please enter a custom prompt.");
+                return;
+            }
+
+            previewBox.style.display = "block";
+            previewBox.value = "Generating message… please wait...";
+            subjectBox.value = "";
+
+            fetch("/generate-message/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    custom_prompt: custom_prompt
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Response:", data);
+
+                    if (data.subject && data.message) {
+                        subjectBox.value = data.subject;
+                        previewBox.value = data.message;
+
+                        document.getElementById("generated_subject").value = data.subject;
+                        document.getElementById("generated_message").value = data.message;
+                    } else {
+                        previewBox.value = "GPT Error: " + data.error;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    previewBox.value = "Network error.";
+                });
+        }
+
+        // Sync edits with hidden fields before send
+        document.querySelector("form").addEventListener("submit", function () {
+            document.getElementById("generated_subject").value =
+                document.getElementById("email_subject").value;
+
+            document.getElementById("generated_message").value =
+                document.getElementById("preview-box").value;
+        });
+    </script>
 </body>
+
 </html>
