@@ -1,0 +1,15 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.emailbot.desktop
+productName: EmailBot
+files:
+  - filter:
+      - main.js
+      - py_server_start.py
+      - python/**
+      - icon.ico
+win:
+  target: nsis
+  icon: icon.ico
+electronVersion: 26.2.1
