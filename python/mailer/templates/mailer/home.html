@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Bot</title>
+</head>
+<body>
+    <h1>Email Sender</h1>
+
+    <!-- Display Django messages -->
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <!-- Recipient Email -->
+        <label for="email">Recipient Email:</label><br>
+        <input type="email" name="email" id="email" required><br><br>
+        
+        <!-- From Email Selector -->
+        <label for="from_email">From Email:</label><br>
+        <select name="from_email" id="from_email" required>
+            <option value="">-- Select From Email --</option>
+            {% for from_email in from_emails %}
+                <option value="{{ from_email }}">{{ from_email }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <!-- Email Templates -->
+        <h3>Select Email Templates:</h3>
+        {% for key, message in templates.items %}
+            <input type="checkbox" name="templates" value="{{ key }}" id="{{ key }}">
+            <label for="{{ key }}">{{ key|capfirst }}</label><br>
+        {% endfor %}
+
+        <br>
+        <button type="submit">Send Emails</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "django-desktop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.emailbot.desktop",
+    "productName": "EmailBot",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "py_server_start.py",
+      "python/**",
+      "icon.ico"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^26.2.1",
+    "electron-builder": "^26.0.12"
+  }
+}

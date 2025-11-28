@@ -1,0 +1,6 @@
+django-desktop/release/
+django-desktop/node_modules/
+*.exe
+*.asar
+*.pkg
+*.zip
