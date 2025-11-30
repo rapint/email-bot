@@ -34,10 +34,10 @@ def generate_message(request):
             "body": "string"
             }}
 
-            ❌ Do NOT add markdown
-            ❌ Do NOT add commentary
-            ❌ Do NOT write explanations
-            ✔ ONLY return JSON
+            Do NOT add markdown
+            Do NOT add commentary
+            Do NOT write explanations
+            ONLY return JSON
 
             Job Description:
             {prompt}
