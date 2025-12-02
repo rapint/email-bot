@@ -1,0 +1,16 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.emailbot.app
+productName: EmailBot
+files:
+  - filter:
+      - main.js
+      - package.json
+      - app/**/*
+extraResources:
+  - from: app/backend/dist/py_server_start
+    to: backend
+    filter:
+      - '**/*'
+electronVersion: 26.2.1

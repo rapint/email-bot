@@ -1,0 +1,35 @@
+{
+  "name": "django-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "prebuild": "python ../prepare_python_portable.py",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.emailbot.app",
+    "productName": "EmailBot",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "package.json",
+      "app/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "app/backend/dist/py_server_start",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^26.2.1",
+    "electron-builder": "^26.0.12"
+  }
+}
