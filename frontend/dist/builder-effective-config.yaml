@@ -9,8 +9,8 @@ files:
       - package.json
       - app/**/*
 extraResources:
-  - from: app/backend/dist/py_server_start
+  - from: app/backend/dist/
     to: backend
     filter:
-      - '**/*'
+      - backend_server.exe
 electronVersion: 26.2.1
