@@ -59,7 +59,7 @@ async function createWindow() {
   // Wait until backend is actually running
   await waitForBackend();
 
-  win.loadURL("http://127.0.0.1:8765");
+  win.loadURL("http://127.0.0.1:8000");
 }
 
 app.whenReady().then(() => {

@@ -40,7 +40,7 @@ try:
     log_file.write("WSGI application loaded\n")
 
     from waitress import serve
-    log_file.write("Starting Waitress on 127.0.0.1:8765\n")
+    log_file.write("Starting Waitress on 127.0.0.1:8000\n")
 
     serve(application, host="127.0.0.1", port=8765)
 
