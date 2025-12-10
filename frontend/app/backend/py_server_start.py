@@ -42,7 +42,7 @@ try:
     from waitress import serve
     log_file.write("Starting Waitress on 127.0.0.1:8000\n")
 
-    serve(application, host="127.0.0.1", port=8765)
+    serve(application, host="127.0.0.1", port=8000)
 
 except Exception as e:
     log_file.write("\n=== ERROR OCCURRED ===\n")

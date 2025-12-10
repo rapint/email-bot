@@ -4,7 +4,7 @@ const { spawn } = require("child_process");
 const net = require("net");
 
 let backendProcess = null;
-const BACKEND_PORT = 8765;
+const BACKEND_PORT = 8000;
 
 function isBackendRunning() {
   return new Promise((resolve) => {
