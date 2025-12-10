@@ -35,7 +35,10 @@ function startBackend() {
     backendPath = path.join(__dirname, "app", "backend", "dist", "backend_server.exe");
   } else {
     // PRODUCTION MODE
-    backendPath = path.join(process.resourcesPath, "backend", "backend_server.exe");
+    backendPath = path.join(process.resourcesPath, "app",
+      "backend",
+      "dist",
+      "backend_server.exe");
   }
 
   backendProcess = spawn(backendPath, [], {

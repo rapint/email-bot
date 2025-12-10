@@ -1,6 +1,0 @@
-=== Backend Starting ===
-BASE_DIR: C:\Users\user\AppData\Local\Temp\_MEI172962
-Django settings loaded
-Django setup OK
-WSGI application loaded
-Starting Waitress on 127.0.0.1:8000
