@@ -1,5 +1,9 @@
 django-desktop/release/
 django-desktop/node_modules/
+frontend/node_modules/
+frontend/app/backend/python/
+frontend/app/backend/python_portable/
+frontend/app/backend/mailer/_init__.py
 *.exe
 *.asar
 *.pkg
