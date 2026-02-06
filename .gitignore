@@ -8,3 +8,4 @@ frontend/app/backend/mailer/_init__.py
 *.asar
 *.pkg
 *.zipfrontend/app/backend/mailer/fresh-lens-485918-g4-2d37947e9238.json
+frontend/app/backend/mailer/*.json
