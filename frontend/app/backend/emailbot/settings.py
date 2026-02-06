@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party apps
+    'rest_framework',
+    'rest_framework.authtoken',
+
+    # Local apps
     'mailer',
 ]
 
@@ -68,6 +74,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'emailbot.wsgi.application'
+
+# ASGI application (for WebSocket / real-time features)
+ASGI_APPLICATION = 'emailbot.asgi.application'
 
 
 # Database
@@ -117,17 +126,38 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Django REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# settings.py
-
+# Email backend defaults (can be overridden per EmailAccount)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'dejesusedmar72@gmail.com'
-EMAIL_HOST_PASSWORD = 'dpsd wuip bqce xgwh'  # Use App Password, not regular Gmail password
+
+# Celery configuration (broker/result backends should be set via environment)
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+LOGIN_URL = "login"      # URL to redirect if not logged in
+LOGIN_REDIRECT_URL = "/"   # URL to redirect after login
+LOGOUT_REDIRECT_URL = "mailer"  # URL after logout
+LOGOUT_REDIRECT_URL = '/' 
+
 

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Email Bot</title>
+    <title>Email Scheduler</title>
 
     <style>
         body {
@@ -40,7 +40,6 @@
         }
 
         input,
-        select,
         textarea {
             width: 100%;
             margin-top: 6px;
@@ -52,7 +51,6 @@
         }
 
         input:focus,
-        select:focus,
         textarea:focus {
             border-color: #6366f1;
             box-shadow: 0 0 5px rgba(99, 102, 241, 0.4);
@@ -80,27 +78,6 @@
             background: #4f46e5;
         }
 
-        #generated-message {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            white-space: pre-wrap;
-            font-size: 14px;
-            color: #374151;
-            min-height: 100px;
-            display: none;
-        }
-
-        .btn-secondary {
-            background: #10b981;
-        }
-
-        .btn-secondary:hover {
-            background: #059669;
-        }
-
         ul {
             list-style: none;
             padding-left: 0;
@@ -112,6 +89,7 @@
             margin-bottom: 8px;
             padding: 8px;
             border-radius: 8px;
+            font-family: monospace;
         }
 
         li.success {
@@ -120,6 +98,30 @@
             margin-bottom: 8px;
             padding: 8px;
             border-radius: 8px;
+            font-family: monospace;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .logout-btn {
+            padding: 6px 10px;
+            background: #ef4444;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
         }
     </style>
 </head>
@@ -127,8 +129,17 @@
 <body>
     <div class="container">
 
-        <h1>Email Sender</h1>
+        <h1>Email Scheduler</h1>
 
+        <!-- User Info + Logout -->
+        {% if user.is_authenticated %}
+        <div class="user-info">
+            <span>Logged in as: <strong>{{ user.username }}</strong></span>
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+        {% endif %}
+
+        <!-- Django messages -->
         {% if messages %}
         <ul>
             {% for message in messages %}
@@ -140,125 +151,54 @@
         <form method="POST">
             {% csrf_token %}
 
-            <label for="email">Recipient Email:</label>
-            <input type="email" name="email" id="email" required>
+            <label for="sheet_url">Google Sheet URL:</label>
+            <input type="url" name="sheet_url" id="sheet_url" placeholder="Enter your Google Sheet URL" required
+                value="{{ sheet_url|default:'' }}">
 
-            <label for="from_email">From Email:</label>
-            <select name="from_email" id="from_email" required>
-                <option value="">-- Select From Email --</option>
-                {% for acc in from_emails %}
-                <option value="{{ acc.email }}">{{ acc.email }}</option>
-                {% endfor %}
+            <label for="generated_message">Email Content:</label>
+            <textarea name="generated_message" id="generated_message" placeholder="Type your email message here..."
+                rows="8" required>{{ generated_message|default:'' }}</textarea>
 
-            </select>
+            <label for="schedule_time">Schedule Time:</label>
+            <input type="datetime-local" name="schedule_time" id="schedule_time"
+                value="{{ schedule_time|default:'' }}">
 
-            <label for="resume">Your Resume:</label>
-            <textarea id="resume" name="resume" placeholder="Paste your resume here...">
-                 {{ saved_resume|default:"" }}
-            </textarea>
-
-            <label for="custom_prompt">Your Prompt:</label>
-            <textarea id="custom_prompt" name="custom_prompt" placeholder="Write a polite job application email">
-                 {{ saved_prompt|default:"" }}
-            </textarea>
-
-            <label for="job_description">Job Description:</label>
-            <textarea id="job_description" placeholder="Paste the job description here..."></textarea>
-
-            <!-- Generate -->
-            <button type="button" class="btn-secondary" onclick="generateMessage()">Generate Message</button>
-
-            <label>Email Subject:</label>
-            <input type="text" name="generated_subject" id="generated_subject" placeholder="Generated subject will be written here...">
-            <label>Email Content:</label>
-            <textarea type="text" name="generated_message" id="generated_message" placeholder="Generated content will be written here..."></textarea>
-
-            <!-- Send -->
-            <button type="submit">Send Email</button>
+            <button type="submit">Send Emails</button>
         </form>
+
+        <!-- Logs Section -->
+        <h2>Logs (latest 5)</h2>
+        <ul id="log-container">
+            {% for log in logs|slice:"-5:" %}
+            <li class="{% if '✅' in log %}success{% elif '❌' in log %}error{% endif %}">{{ log }}</li>
+            {% endfor %}
+        </ul>
+
     </div>
 
     <script>
-        function generateMessage() {
-            console.log("Generate message clicked!");
-
-            const prompt = document.getElementById("job_description").value;
-            const resume = document.getElementById("resume").value;
-            const custom_prompt = document.getElementById("custom_prompt").value;
-            const previewBox = document.getElementById("generated_message");
-            const subjectBox = document.getElementById("generated_subject");
-
-            if (!prompt.trim()) {
-                alert("Please enter a job description.");
-                return;
-            }
-
-            if (!custom_prompt.trim()) {
-                alert("Please enter a custom prompt.");
-                return;
-            }
-
-            previewBox.style.display = "block";
-            previewBox.value = "Generating message… please wait...";
-            subjectBox.value = "";
-
-            fetch("/generate-message/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    custom_prompt: custom_prompt,
-                    resume: resume
-                })
-            })
-                .then(res => res.json())
+        function fetchLogs() {
+            fetch("{% url 'get_logs' %}")
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Response:", data);
-
-                    // If backend returned an error
-                    if (data.error) {
-                        previewBox.value = "GPT Error: " + data.error;
-                        return;
-                    }
-
-                    let subject = data.subject;
-                    let body = data.message;
-
-                    // Some models return JSON as a string → fix that
-                    if (typeof body === "string" && body.trim().startsWith("{") && body.trim().endsWith("}")) {
-                        try {
-                            const parsed = JSON.parse(body);
-                            subject = parsed.subject || subject;
-                            body = parsed.body || body;
-                        } catch (err) {
-                            console.warn("Nested JSON parse failed, using raw body");
-                        }
-                    }
-
-                    // Update UI
-                    subjectBox.value = subject || "";
-                    previewBox.value = body || "";
-
-                    // Update hidden fields
-                    document.getElementById("generated_subject").value = subject || "";
-                    document.getElementById("generated_message").value = body || "";
-                })
-                .catch(err => {
-                    console.error("Network error:", err);
-                    previewBox.value = "Network error.";
+                    const logContainer = document.getElementById("log-container");
+                    logContainer.innerHTML = ""; // Clear old logs
+                    // Show only last 5 logs
+                    const lastLogs = data.logs.slice(-5);
+                    lastLogs.forEach(log => {
+                        const li = document.createElement("li");
+                        li.textContent = log;
+                        li.className = log.includes("✅") ? "success" :
+                                       log.includes("❌") ? "error" : "";
+                        logContainer.appendChild(li);
+                    });
                 });
         }
 
-
-        // Sync edits with hidden fields before send
-        // document.querySelector("form").addEventListener("submit", function () {
-        //     document.getElementById("generated_subject").value =
-        //         document.getElementById("generated_subject").value;
-
-        //     document.getElementById("generated_message").value =
-        //         document.getElementById("generated-message").value;
-        // });
+        // Fetch logs every 2 seconds
+        setInterval(fetchLogs, 5000);
+        fetchLogs(); // Fetch immediately on load
     </script>
-</body>
 
+</body>
 </html>
